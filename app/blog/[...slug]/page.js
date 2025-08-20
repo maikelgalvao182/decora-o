@@ -158,13 +158,22 @@ export default function BlogPostPage({ params }) {
 }
 
 function PostHeader({ post, slugArray }) {
-  const breadcrumbItems = [
-    { href: '/blog', label: 'Blog' },
-  ];
-  const pathSoFar = [];
-  slugArray.slice(0, -1).forEach((segment) => {
-    pathSoFar.push(segment);
-    breadcrumbItems.push({ href: '/blog/' + pathSoFar.join('/'), label: segment });
+  // Cria breadcrumb onde cada segmento (exceto o último que é o arquivo) gera um link
+  // para a página principal do blog já filtrada pela categoria correspondente.
+  // Antes: usava /blog/<segmento> que cai em rota de post (catch-all) e gera 404.
+  const breadcrumbItems = [{ href: '/blog', label: 'Blog' }];
+  // Os segmentos antes do nome do arquivo representam categorias/subcategorias
+  const categorySegments = slugArray.slice(0, -1);
+
+  function humanize(seg) {
+    return seg.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+  }
+
+  categorySegments.forEach((segment) => {
+    breadcrumbItems.push({
+      href: `/blog?cat=${encodeURIComponent(segment)}`,
+      label: humanize(segment)
+    });
   });
 
   return (
@@ -172,9 +181,9 @@ function PostHeader({ post, slugArray }) {
       <div className="px-4 py-4 bg-gray-50">
         <div className="max-w-4xl mx-auto">
           <nav className="text-sm flex flex-wrap items-center gap-1">
-            {breadcrumbItems.map((item) => (
+            {breadcrumbItems.map((item, idx) => (
               <span key={item.href} className="flex items-center">
-                <Link href={item.href} className="text-gray-600 hover:text-primary capitalize">{item.label}</Link>
+                <Link href={item.href} className="text-gray-600 hover:text-primary">{item.label}</Link>
                 <span className="mx-2 text-gray-400">/</span>
               </span>
             ))}
